@@ -16,7 +16,7 @@ export default async function RootPage() {
     STUDENT: "/student/dashboard",
     PROCTOR: "/proctor/dashboard",
     ADMIN:   "/admin/dashboard",
-    PARENT:  "/parent/requests",
+    PARENT:  "/parent/dashboard",
   } as const;
   // Note: URLs resolve from route groups:
   //   (student)/student/dashboard → /student/dashboard

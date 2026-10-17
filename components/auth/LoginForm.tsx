@@ -1,162 +1,19 @@
 "use client";
-
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { loginSchema, type LoginInput } from "@/lib/validations";
-
-// ─────────────────────────────────────────────
-// Login Form (Client Component)
-// ─────────────────────────────────────────────
+import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import { loginSchema } from "@/lib/validations";
 export function LoginForm() {
-  const router = useRouter();
-  const [form, setForm] = useState<LoginInput>({ email: "", password: "" });
-  const [errors, setErrors] = useState<Partial<LoginInput>>({});
-  const [serverError, setServerError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
-    setServerError(null);
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    // Client-side validation
-    const parsed = loginSchema.safeParse(form);
-    if (!parsed.success) {
-      const fieldErrors: Partial<LoginInput> = {};
-      parsed.error.errors.forEach((err) => {
-        const field = err.path[0] as keyof LoginInput;
-        fieldErrors[field] = err.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-
+  const router = useRouter(); const [loading,setLoading] = useState(false); const [error,setError] = useState(""); const [show,setShow] = useState(false);
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setError(""); const form = new FormData(e.currentTarget);
+    const result = loginSchema.safeParse(Object.fromEntries(form));
+    if (!result.success) { setError(result.error.issues[0].message); return; }
     setLoading(true);
-
-    const result = await signIn("credentials", {
-      email: form.email,
-      password: form.password,
-      redirect: false,
-    });
-
-    setLoading(false);
-
-    if (result?.error) {
-      setServerError("Invalid email or password. Please try again.");
-      return;
-    }
-
-    // Successful login — root page handles role-based redirect
-    router.push("/");
-    router.refresh();
+    try { const response = await signIn("credentials", { ...result.data, redirect: false }); if (response?.error || !response?.ok) { setError("Unable to sign in. Check your details, or try again later if you have made several attempts."); } else { router.push("/"); router.refresh(); } }
+    catch { setError("Cannot reach the sign-in service. Please try again."); }
+    finally { setLoading(false); }
   }
-
-  return (
-    <form onSubmit={handleSubmit} noValidate aria-label="Login form">
-      {/* Email */}
-      <div className="mb-4">
-        <label htmlFor="email" className="label" style={{ color: "hsl(220,20%,70%)" }}>
-          IITM Email Address
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={form.email}
-          onChange={handleChange}
-          placeholder="student@iitm.ac.in"
-          aria-describedby={errors.email ? "email-error" : undefined}
-          aria-invalid={!!errors.email}
-          style={{
-            width: "100%",
-            padding: "0.625rem 0.875rem",
-            borderRadius: "0.625rem",
-            border: `1px solid ${errors.email ? "hsl(0,72%,52%)" : "rgba(255,255,255,0.15)"}`,
-            background: "rgba(255,255,255,0.07)",
-            color: "white",
-            fontSize: "0.875rem",
-            outline: "none",
-          }}
-        />
-        {errors.email && (
-          <p id="email-error" role="alert" className="mt-1 text-xs" style={{ color: "hsl(0,80%,70%)" }}>
-            {errors.email}
-          </p>
-        )}
-      </div>
-
-      {/* Password */}
-      <div className="mb-6">
-        <label htmlFor="password" className="label" style={{ color: "hsl(220,20%,70%)" }}>
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          value={form.password}
-          onChange={handleChange}
-          placeholder="••••••••"
-          aria-describedby={errors.password ? "password-error" : undefined}
-          aria-invalid={!!errors.password}
-          style={{
-            width: "100%",
-            padding: "0.625rem 0.875rem",
-            borderRadius: "0.625rem",
-            border: `1px solid ${errors.password ? "hsl(0,72%,52%)" : "rgba(255,255,255,0.15)"}`,
-            background: "rgba(255,255,255,0.07)",
-            color: "white",
-            fontSize: "0.875rem",
-            outline: "none",
-          }}
-        />
-        {errors.password && (
-          <p id="password-error" role="alert" className="mt-1 text-xs" style={{ color: "hsl(0,80%,70%)" }}>
-            {errors.password}
-          </p>
-        )}
-      </div>
-
-      {/* Server error */}
-      {serverError && (
-        <div
-          role="alert"
-          className="mb-4 px-4 py-3 rounded-lg text-sm"
-          style={{ background: "hsl(0,60%,20%)", color: "hsl(0,80%,75%)", border: "1px solid hsl(0,50%,35%)" }}
-        >
-          {serverError}
-        </div>
-      )}
-
-      {/* Submit */}
-      <button
-        id="login-submit"
-        type="submit"
-        disabled={loading}
-        aria-busy={loading}
-        style={{
-          width: "100%",
-          padding: "0.75rem",
-          borderRadius: "0.625rem",
-          border: "none",
-          background: "linear-gradient(135deg, hsl(220,80%,52%), hsl(250,80%,60%))",
-          color: "white",
-          fontWeight: 600,
-          fontSize: "0.9375rem",
-          cursor: loading ? "not-allowed" : "pointer",
-          opacity: loading ? 0.7 : 1,
-          transition: "opacity 0.15s",
-        }}
-      >
-        {loading ? "Signing in…" : "Sign In"}
-      </button>
-    </form>
-  );
+  return <form onSubmit={submit} className="space-y-5"><div><label className="label" htmlFor="email">Email address</label><input className="input" id="email" name="email" type="email" autoComplete="username" placeholder="you@iitm.ac.in" required /></div><div><label className="label" htmlFor="password">Password</label><div className="relative"><input className="input pr-12" id="password" name="password" type={show ? "text" : "password"} autoComplete="current-password" required minLength={6} /><button type="button" className="absolute right-3 top-3 muted" onClick={() => setShow(!show)} aria-label={show ? "Hide password" : "Show password"}>{show ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></div>{error && <p role="alert" className="notice notice-warning">{error}</p>}<button className="btn btn-primary w-full !py-3" disabled={loading} aria-busy={loading}>{loading ? <Loader2 size={16} className="animate-spin" /> : null}{loading ? "Signing in…" : "Sign in to your workspace"}<ArrowRight size={16} /></button><p className="text-[11px] muted text-center leading-relaxed">Need access? Contact your campus administrator.<br />Parents can use their registered personal email.</p></form>;
 }

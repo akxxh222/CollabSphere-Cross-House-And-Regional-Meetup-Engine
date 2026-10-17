@@ -23,11 +23,11 @@ const outfit = Outfit({
 // ─────────────────────────────────────────────
 export const metadata: Metadata = {
   title: {
-    default: "CampusCare — IITM Hospital Visit Authorization",
+    default: "CampusCare — IIT Madras",
     template: "%s | CampusCare",
   },
   description:
-    "A secure digital platform for IITM students to request and track hospital visit authorizations, with real-time emergency escalation to proctors and parents.",
+    "Hospital visit authorization, timely emergency escalation, and connected care for the IIT Madras community.",
   keywords: ["IITM", "hospital", "authorization", "campus", "students", "proctor"],
   authors: [{ name: "CampusCare Team" }],
   robots: { index: false, follow: false }, // not a public-facing app
