@@ -33,3 +33,9 @@ next-env.d.ts
 .DS_Store
 *.pem
 .vercel
+
+# verification artifacts and local reports
+/test-results/
+/playwright-report/
+/coverage/
+/.artifacts/
