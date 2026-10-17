@@ -1,12 +1,12 @@
 # 🏥 CampusCare — Hospital Visit Authorization System
 
-> A digital solution for VIT students to request, track, and get authorized for hospital visits — with real-time emergency escalation.
+> A digital solution for IITM students to request, track, and get authorized for hospital visits — with real-time emergency escalation.
 
 ---
 
 ## 🚨 The Problem
 
-VIT students needing hospital visits go through a slow, paper-based authorization process. During emergencies or off-hours, requests sit unattended — putting students at risk.
+IITM students needing hospital visits go through a slow, paper-based authorization process. During emergencies or off-hours, requests sit unattended — putting students at risk.
 
 ## ✅ The Solution
 
@@ -63,9 +63,9 @@ Open [http://localhost:3000](http://localhost:3000)
 
 | Role | Email | Password |
 |---|---|---|
-| Student | student@vit.ac.in | demo1234 |
-| Proctor | proctor@vit.ac.in | demo1234 |
-| Admin | admin@vit.ac.in | demo1234 |
+| Student | student@iitm.ac.in | demo1234 |
+| Proctor | proctor@iitm.ac.in | demo1234 |
+| Admin | admin@iitm.ac.in | demo1234 |
 
 ---
 
