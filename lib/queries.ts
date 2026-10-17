@@ -26,7 +26,7 @@ export async function listRequests(actor: Actor, params = new URLSearchParams())
   const where = { AND: [requestScope(actor), filterWhere(params)] };
   const sort = params.get("sort") ?? "createdAt";
   const direction = params.get("direction") === "asc" ? "asc" : "desc";
-  const orderBy: Prisma.RequestOrderByWithRelationInput = sort === "student" ? { student: { name: direction } } : sort === "hospitalName" ? { hospitalName: direction } : sort === "status" ? { status: direction } : { createdAt: direction };
+  const orderBy: Prisma.RequestOrderByWithRelationInput = sort === "student" ? { student: { name: direction } } : sort === "hospitalName" ? { hospitalName: direction } : sort === "status" ? { status: direction } : sort === "visitDate" ? { visitDate: direction } : { createdAt: direction };
   const [rows, total] = await Promise.all([db.request.findMany({ where, include: requestInclude, orderBy: [orderBy, { id: "asc" }], take: 10, skip: (page - 1) * 10 }), db.request.count({ where })]);
   return { rows: rows.map(serializeRequest), total, page, pages: Math.max(1, Math.ceil(total / 10)) };
 }
