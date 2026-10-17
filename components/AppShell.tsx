@@ -5,26 +5,23 @@ import { signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import {
-  Activity,
   LayoutDashboard,
-  ClipboardList,
-  Building2,
+  Map,
+  CalendarPlus,
   Users,
-  Bell,
-  Settings,
-  History,
+  Building2,
   LogOut,
   Sun,
   Moon,
   Menu,
   X,
-  ShieldCheck,
-  ArrowUpRight,
-  Plus,
+  Network,
+  QrCode,
+  Sparkles,
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { initials } from "./ui";
-const icons = { LayoutDashboard, ClipboardList, Building2, Users, Bell, Settings, History, Plus };
+const icons = { LayoutDashboard, Map, CalendarPlus, Users, Building2, QrCode };
 type Nav = { label: string; path: string; icon: keyof typeof icons };
 export function AppShell({
   user,
@@ -42,26 +39,16 @@ export function AppShell({
   useEffect(() => setOpen(false), [pathname]);
   const root = `/${user.role.toLowerCase()}`;
   const nav: Nav[] = [
-    { label: "Overview", path: `${root}/dashboard`, icon: "LayoutDashboard" },
-    {
-      label: user.role === "STUDENT" ? "My requests" : "Visit requests",
-      path: `${root}/requests`,
-      icon: "ClipboardList",
-    },
+    { label: "Community pulse", path: `${root}/dashboard`, icon: "LayoutDashboard" },
+    { label: "Explore map", path: `${root}/map`, icon: "Map" },
+    { label: "Meetups", path: `${root}/events`, icon: "Users" },
   ];
-  if (user.role === "STUDENT")
-    nav.push({ label: "New request", path: `${root}/new`, icon: "Plus" });
-  if (user.role !== "ADMIN")
-    nav.push({ label: "Nearby hospitals", path: `${root}/hospitals`, icon: "Building2" });
+  if (user.role !== "STUDENT")
+    nav.push({ label: "Create meetup", path: `${root}/events/new`, icon: "CalendarPlus" });
   if (user.role === "ADMIN")
-    nav.push(
-      { label: "People & access", path: "/admin/users", icon: "Users" },
-      { label: "Hospital registry", path: "/admin/hospitals", icon: "Building2" },
-      { label: "Notifications", path: "/admin/notifications", icon: "Bell" },
-      { label: "Activity log", path: "/admin/audit", icon: "History" },
-      { label: "Settings", path: "/admin/settings", icon: "Settings" },
-    );
-  const current = nav.find((n) => pathname.startsWith(n.path))?.label ?? "Request details";
+    nav.push({ label: "Member approvals", path: "/admin/members", icon: "Users" });
+  nav.push({ label: "Nearby hospitals", path: `${root}/hospitals`, icon: "Building2" });
+  const current = nav.find((n) => pathname.startsWith(n.path))?.label ?? "Community";
   return (
     <div>
       {open && (
@@ -74,12 +61,12 @@ export function AppShell({
       <aside className={`app-sidebar ${open ? "open" : ""}`} aria-label="Main navigation">
         <Link href={`${root}/dashboard`} className="brand px-3 text-white">
           <span className="brand-mark">
-            <Activity size={23} />
+            <Network size={23} />
           </span>
-          CampusCare<span className="text-[#c8edaf]">.</span>
+          CollabSphere<span className="text-[#c8edaf]">.</span>
         </Link>
         <div className="px-3 mt-2 text-[10px] tracking-wider text-[#a5bdb0]">
-          IIT MADRAS · STUDENT WELLBEING
+          IIT MADRAS · ONLINE DEGREE COMMUNITY
         </div>
         <div className="sidebar-caption">Workspace</div>
         <nav>
@@ -93,7 +80,7 @@ export function AppShell({
                 className={`nav-item ${active ? "active" : ""}`}
                 aria-current={active ? "page" : undefined}
               >
-                <Icon size={17} strokeWidth={1.7} />
+                <Icon size={17} />
                 {n.label}
               </Link>
             );
@@ -101,23 +88,17 @@ export function AppShell({
         </nav>
         <div className="mt-auto pt-8">
           <div className="rounded-xl border border-white/15 p-4 mb-5">
-            <ShieldCheck size={21} className="text-[#c8edaf] mb-3" />
-            <p className="text-xs font-medium text-white">Care, without the wait.</p>
+            <Sparkles size={21} className="text-[#c8edaf] mb-3" />
+            <p className="text-xs font-medium text-white">Learn locally. Belong globally.</p>
             <p className="text-[11px] leading-relaxed mt-2 text-[#b1c7ba]">
-              A simpler path from your campus to the care you need.
+              Find peers, host study circles, and earn activity points through verified
+              participation.
             </p>
-            <Link
-              href={`${root}/hospitals`}
-              className={`text-[11px] text-[#c8edaf] mt-3 flex items-center gap-1 ${user.role === "ADMIN" ? "hidden" : ""}`}
-            >
-              Find care nearby <ArrowUpRight size={12} />
-            </Link>
           </div>
           <button className="nav-item w-full" onClick={() => signOut({ callbackUrl: "/login" })}>
             <LogOut size={17} />
             Sign out
           </button>
-          <p className="text-[9px] px-3 mt-3 text-[#a5bdb0]">CAMPUSCARE / BUILD-A-THON 2026</p>
         </div>
       </aside>
       <div className="app-content">
@@ -127,19 +108,12 @@ export function AppShell({
               className="icon-btn mobile-only"
               onClick={() => setOpen(!open)}
               aria-label="Toggle navigation"
-              aria-expanded={open}
             >
               {open ? <X size={18} /> : <Menu size={18} />}
             </button>
-            <div className="text-xs">
-              <span className="muted desktop-only">
-                Workspace <span className="mx-3 opacity-50">/</span>
-              </span>
-              <span className="font-medium">{current}</span>
-            </div>
+            <span className="text-xs font-medium">{current}</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="desktop-only badge badge-approved">Secure workspace</span>
             <button
               className="icon-btn"
               aria-label="Toggle color theme"
@@ -147,12 +121,11 @@ export function AppShell({
             >
               {mounted && resolvedTheme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
             </button>
-            <div className="h-8 border-l mx-1 desktop-only" />
             <span className="avatar">{initials(user.name)}</span>
             <div className="desktop-only">
               <p className="text-xs font-semibold">{user.name}</p>
-              <p className="text-[10px] muted mt-1 capitalize">
-                {user.role.toLowerCase()} workspace
+              <p className="text-[10px] muted mt-1">
+                {user.role === "COORDINATOR" ? "Student coordinator" : user.role.toLowerCase()}
               </p>
             </div>
           </div>
@@ -164,15 +137,14 @@ export function AppShell({
               initial={{ opacity: 0, y: reduced ? 0 : 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: reduced ? 0 : 0.16 }}
             >
               {children}
             </motion.div>
           </AnimatePresence>
         </main>
         <footer className="px-6 pb-5 flex justify-between text-[10px] muted">
-          <span>CampusCare · IIT Madras</span>
-          <span>Built around your wellbeing.</span>
+          <span>CollabSphere · IIT Madras</span>
+          <span>Regional learning, connected.</span>
         </footer>
       </div>
     </div>

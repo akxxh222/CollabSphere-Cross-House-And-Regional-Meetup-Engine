@@ -1,3 +1,4 @@
-import { Dashboard } from "@/components/Dashboard";
-export const metadata = { title: "Admin overview" };
-export default Dashboard;
+import { CommunityDashboard } from "@/components/CommunityDashboard";
+export default function Page() {
+  return <CommunityDashboard role="ADMIN" />;
+}

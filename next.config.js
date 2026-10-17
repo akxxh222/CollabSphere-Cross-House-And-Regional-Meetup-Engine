@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   async headers() {
     return [

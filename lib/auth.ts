@@ -25,7 +25,12 @@ export const authOptions: NextAuthOptions = {
         });
         if (attempt.count > 15) return null;
         const user = await db.user.findUnique({ where: { email } });
-        if (!user?.isActive || !user.password || !(await bcrypt.compare(password, user.password)))
+        if (
+          !user?.isActive ||
+          user.approvalStatus !== "APPROVED" ||
+          !user.password ||
+          !(await bcrypt.compare(password, user.password))
+        )
           return null;
         await db.loginAttempt.deleteMany({ where: { key } });
         return {
@@ -59,8 +64,16 @@ export async function getAuthSession() {
   if (!session?.user?.id) return null;
   const user = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, name: true, email: true, role: true, image: true, isActive: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      image: true,
+      isActive: true,
+      approvalStatus: true,
+    },
   });
-  return user?.isActive ? { ...session, user } : null;
+  return user?.isActive && user.approvalStatus === "APPROVED" ? { ...session, user } : null;
 }
 export const hashPassword = (plain: string) => bcrypt.hash(plain, 12);

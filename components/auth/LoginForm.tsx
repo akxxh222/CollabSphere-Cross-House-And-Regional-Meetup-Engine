@@ -12,20 +12,19 @@ export function LoginForm() {
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    const form = new FormData(e.currentTarget);
-    const result = loginSchema.safeParse(Object.fromEntries(form));
-    if (!result.success) {
-      setError(result.error.issues[0].message);
+    const parsed = loginSchema.safeParse(Object.fromEntries(new FormData(e.currentTarget)));
+    if (!parsed.success) {
+      setError(parsed.error.issues[0].message);
       return;
     }
     setLoading(true);
     try {
-      const response = await signIn("credentials", { ...result.data, redirect: false });
-      if (response?.error || !response?.ok) {
+      const response = await signIn("credentials", { ...parsed.data, redirect: false });
+      if (response?.error || !response?.ok)
         setError(
-          "Unable to sign in. Check your details, or try again later if you have made several attempts.",
+          "Unable to sign in. Check your details and make sure an admin approved your account.",
         );
-      } else {
+      else {
         router.push("/");
         router.refresh();
       }
@@ -42,12 +41,12 @@ export function LoginForm() {
           Email address
         </label>
         <input
-          className="input"
           id="email"
+          className="input"
           name="email"
           type="email"
           autoComplete="username"
-          placeholder="you@iitm.ac.in"
+          placeholder="you@ds.study.iitm.ac.in"
           required
         />
       </div>
@@ -57,13 +56,13 @@ export function LoginForm() {
         </label>
         <div className="relative">
           <input
-            className="input pr-12"
             id="password"
+            className="input pr-12"
             name="password"
             type={show ? "text" : "password"}
             autoComplete="current-password"
             required
-            minLength={6}
+            minLength={8}
           />
           <button
             type="button"
@@ -80,15 +79,13 @@ export function LoginForm() {
           {error}
         </p>
       )}
-      <button className="btn btn-primary w-full !py-3" disabled={loading} aria-busy={loading}>
+      <button className="btn btn-primary w-full !py-3" disabled={loading}>
         {loading ? <Loader2 size={16} className="animate-spin" /> : null}
         {loading ? "Signing in…" : "Sign in to your workspace"}
         <ArrowRight size={16} />
       </button>
-      <p className="text-[11px] muted text-center leading-relaxed">
-        Need access? Contact your campus administrator.
-        <br />
-        Parents can use their registered personal email.
+      <p className="text-[11px] muted text-center">
+        Pending applications cannot sign in until an admin approves them.
       </p>
     </form>
   );

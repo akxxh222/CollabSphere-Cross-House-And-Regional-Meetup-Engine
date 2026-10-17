@@ -1,6 +1,5 @@
 import { ClipboardList, ArrowUpRight } from "lucide-react";
-import type { RequestStatus } from "@prisma/client";
-export function StatusBadge({ status }: { status: RequestStatus }) {
+export function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`badge badge-${status.toLowerCase()}`}>
       {status.charAt(0) + status.slice(1).toLowerCase()}

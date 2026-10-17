@@ -1,174 +1,162 @@
-import { loadEnvConfig } from "@next/env";
-loadEnvConfig(process.cwd());
-import { PrismaClient, RequestStatus } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { randomBytes } from "node:crypto";
+import { loadEnvConfig } from "@next/env";
 import { hospitals } from "./hospitals";
+loadEnvConfig(process.cwd());
 const db = new PrismaClient();
+const password = process.env.DEMO_SEED_PASSWORD ?? "demo1234";
+const people = [
+  {
+    name: "Aarav Admin",
+    email: "admin@iitm.ac.in",
+    role: "ADMIN" as Role,
+    registerNo: "ADM001",
+    region: "South",
+    city: "Chennai",
+    house: "IIT Madras Community",
+    latitude: 13.0067,
+    longitude: 80.2206,
+  },
+  {
+    name: "Meera Coordinator",
+    email: "coordinator@iitm.ac.in",
+    role: "COORDINATOR" as Role,
+    registerNo: "COORD001",
+    region: "South",
+    city: "Bengaluru",
+    house: "Nilgiri House",
+    latitude: 12.9716,
+    longitude: 77.5946,
+  },
+  {
+    name: "Kabir Coordinator",
+    email: "coordinator2@iitm.ac.in",
+    role: "COORDINATOR" as Role,
+    registerNo: "COORD002",
+    region: "West",
+    city: "Mumbai",
+    house: "Vindhya House",
+    latitude: 19.076,
+    longitude: 72.8777,
+  },
+  {
+    name: "Ananya Student",
+    email: "student@iitm.ac.in",
+    role: "STUDENT" as Role,
+    registerNo: "DS24B001",
+    region: "South",
+    city: "Chennai",
+    house: "Nilgiri House",
+    studyProgram: "BS Data Science",
+    latitude: 13.0827,
+    longitude: 80.2707,
+  },
+];
 async function main() {
-  if (process.env.TWILIO_MOCK_MODE === "false" || process.env.EMAIL_MOCK_MODE === "false")
-    throw new Error(
-      "Demo seeding requires mock notifications. Do not seed demo recipients into live messaging.",
-    );
-  const password = await bcrypt.hash(process.env.DEMO_SEED_PASSWORD || "demo1234", 12);
-  const proctor = await db.user.upsert({
-    where: { email: "proctor@iitm.ac.in" },
-    update: { password },
-    create: {
-      name: "Dr. Meera Nair",
-      email: "proctor@iitm.ac.in",
-      role: "PROCTOR",
-      password,
-      department: "Student Affairs",
-    },
-  });
-  const parent = await db.user.upsert({
-    where: { email: "parent@example.org" },
-    update: { password },
-    create: {
-      name: "Ravi Sharma",
-      email: "parent@example.org",
-      role: "PARENT",
-      phone: "+910000000001",
-      password,
-    },
-  });
-  await db.user.upsert({
-    where: { email: "admin@iitm.ac.in" },
-    update: { password },
-    create: { name: "Ananya Rao", email: "admin@iitm.ac.in", role: "ADMIN", password },
-  });
-  const otherProctor = await db.user.upsert({
-    where: { email: "proctor2@iitm.ac.in" },
-    update: { password },
-    create: { name: "Dr. Karthik Iyer", email: "proctor2@iitm.ac.in", role: "PROCTOR", password },
-  });
-  const names = [
-    "Arjun Sharma",
-    "Priya Raman",
-    "Aditya Kumar",
-    "Sneha Menon",
-    "Rohan Das",
-    "Kavya Krishnan",
-  ];
-  const students = [];
-  for (let i = 0; i < names.length; i++) {
-    const email = i === 0 ? "student@iitm.ac.in" : `student${i + 1}@iitm.ac.in`;
-    students.push(
+  const hashed = await bcrypt.hash(password, 12);
+  const users = [];
+  for (const person of people)
+    users.push(
       await db.user.upsert({
-        where: { email },
+        where: { email: person.email },
         update: {
-          password,
-          assignedProctorId: proctor.id,
-          parentId: i === 0 ? parent.id : undefined,
+          ...person,
+          password: hashed,
+          approvalStatus: "APPROVED",
+          isActive: true,
+          approvedAt: new Date(),
         },
         create: {
-          name: names[i],
-          email,
-          password,
-          role: "STUDENT",
-          registerNo: `CS24B00${i + 1}`,
-          department: i % 2 ? "Electrical Engineering" : "Computer Science",
-          assignedProctorId: proctor.id,
-          parentId: i === 0 ? parent.id : null,
+          ...person,
+          password: hashed,
+          approvalStatus: "APPROVED",
+          isActive: true,
+          approvedAt: new Date(),
         },
       }),
     );
-  }
-  await db.user.upsert({
-    where: { email: "unassigned@iitm.ac.in" },
-    update: { password },
-    create: {
-      name: "Dev Test Student",
-      email: "unassigned@iitm.ac.in",
-      role: "STUDENT",
-      password,
-      assignedProctorId: otherProctor.id,
-    },
-  });
-  const registry = [];
   for (const hospital of hospitals)
-    registry.push(
-      await db.hospital.upsert({ where: { name: hospital.name }, update: {}, create: hospital }),
-    );
-  await db.systemSettings.upsert({
-    where: { id: "default" },
-    create: { id: "default" },
-    update: {},
-  });
-  const reasons = [
-    "Scheduled follow-up consultation recommended by my physician.",
-    "Routine eye examination and prescription review appointment.",
-    "A dental consultation for a persistent toothache this week.",
-    "Medical consultation for recurring headaches over the last few days.",
-  ];
-  for (let i = 0; i < 28; i++) {
-    const id = `cdemo${String(i).padStart(20, "0")}`;
-    if (await db.request.findUnique({ where: { id } })) continue;
-    const status: RequestStatus =
-      i < 3 ? "PENDING" : i === 3 ? "ESCALATED" : i % 6 === 0 ? "REJECTED" : "APPROVED";
-    const createdAt = new Date(
-      Date.now() - (i < 4 ? i * 20 * 60000 : (i % 7) * 86400000 + (i * 3600000) / 7),
-    );
-    const student = students[i % students.length];
-    const hospital = registry[i % registry.length];
-    const decisionAt = new Date(createdAt.getTime() + (4 + (i % 13)) * 60000);
-    await db.request.create({
-      data: {
-        id,
-        studentId: student.id,
-        proctorId: proctor.id,
-        hospitalId: hospital.id,
-        hospitalName: hospital.name,
-        reason: reasons[i % reasons.length],
-        status,
-        createdAt,
-        visitDate: new Date(Date.now() + ((i % 4) + 1) * 3600000),
-        returnDate: new Date(Date.now() + ((i % 4) + 5) * 3600000),
-        isEmergency: i === 3,
-        approvedAt: status === "APPROVED" ? decisionAt : null,
-        rejectedAt: status === "REJECTED" ? decisionAt : null,
-        escalatedAt: status === "ESCALATED" ? decisionAt : null,
-        passToken: status === "APPROVED" ? randomBytes(24).toString("hex") : null,
-        proctorNote:
-          status === "REJECTED"
-            ? "Please confirm the appointment time and submit a revised request."
-            : status === "APPROVED"
-              ? "Approved. Carry your student ID and visit pass."
-              : null,
-        auditLogs: {
-          create: [
-            { action: "SUBMITTED", userId: student.id, createdAt },
-            ...(status !== "PENDING"
-              ? [
-                  {
-                    action: status,
-                    userId: status === "ESCALATED" ? null : proctor.id,
-                    createdAt: decisionAt,
-                    note:
-                      status === "ESCALATED"
-                        ? "Demo: automatically escalated after the review deadline."
-                        : "Demo review decision.",
-                  },
-                ]
-              : []),
-          ],
-        },
-      },
+    await db.hospital.upsert({
+      where: { name: hospital.name },
+      update: hospital,
+      create: hospital,
     });
+  const [admin, c1, c2] = users;
+  const now = Date.now();
+  const seeds = [
+    {
+      title: "Chennai Data Science Study Jam",
+      description:
+        "A focused peer-learning afternoon for problem solving, project reviews, and study planning.",
+      type: "STUDY_CIRCLE" as const,
+      region: "South",
+      city: "Chennai",
+      venue: "Anna Centenary Library",
+      address: "Kotturpuram, Chennai",
+      latitude: 13.0108,
+      longitude: 80.2405,
+      startsAt: new Date(now + 7 * 86400000),
+      endsAt: new Date(now + 7 * 86400000 + 10800000),
+      capacity: 50,
+      points: 30,
+      createdById: c1.id,
+    },
+    {
+      title: "Bengaluru Co-working Saturday",
+      description:
+        "Bring your laptop and current course goals for a structured coworking sprint with local learners.",
+      type: "COWORKING" as const,
+      region: "South",
+      city: "Bengaluru",
+      venue: "Cubbon Park Community Hall",
+      address: "Kasturba Road, Bengaluru",
+      latitude: 12.9763,
+      longitude: 77.5929,
+      startsAt: new Date(now + 12 * 86400000),
+      endsAt: new Date(now + 12 * 86400000 + 14400000),
+      capacity: 80,
+      points: 25,
+      createdById: c1.id,
+    },
+    {
+      title: "Mumbai Cross-House Project Night",
+      description:
+        "Nilgiri and Vindhya learners team up to review portfolios and form groups for the next term project.",
+      type: "MEETUP" as const,
+      region: "West",
+      city: "Mumbai",
+      venue: "Dadar Social Hub",
+      address: "Dadar West, Mumbai",
+      latitude: 19.0178,
+      longitude: 72.8478,
+      startsAt: new Date(now + 18 * 86400000),
+      endsAt: new Date(now + 18 * 86400000 + 10800000),
+      capacity: 70,
+      points: 35,
+      createdById: c2.id,
+    },
+  ];
+  for (const item of seeds) {
+    const existing = await db.event.findFirst({ where: { title: item.title } });
+    if (!existing)
+      await db.event.create({
+        data: {
+          ...item,
+          status: "APPROVED",
+          reviewedById: admin.id,
+          reviewedAt: new Date(),
+          hosts: {
+            create: [
+              {
+                userId: item.createdById,
+                houseName: item.createdById === c1.id ? "Nilgiri House" : "Vindhya House",
+                isLead: true,
+              },
+            ],
+          },
+        },
+      });
   }
-  console.log(
-    "Demo seed complete: 4 roles, linked care teams, 3 hospitals, and 28 sample requests. Named demo account passwords were synchronized.",
-  );
+  console.log("Seeded CollabSphere demo accounts and meetups.");
 }
-main()
-  .catch((error) => {
-    console.error(
-      "Seed failed:",
-      error instanceof Error
-        ? error.message.replace(/postgres(?:ql)?:\/\/\S+/g, "[redacted]")
-        : "Unknown error",
-    );
-    process.exitCode = 1;
-  })
-  .finally(() => db.$disconnect());
+main().finally(() => db.$disconnect());

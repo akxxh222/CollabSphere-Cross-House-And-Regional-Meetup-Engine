@@ -1,11 +1,11 @@
 {
-  "name": "campuscare",
+  "name": "collabsphere",
   "overrides": {
     "postcss": "$postcss",
     "glob": "^10.5.0"
   },
   "version": "0.1.0",
-  "description": "A digital solution for IITM students to request, track, and get authorized for hospital visits — with real-time emergency escalation.",
+  "description": "Regional meetup and verified participation platform for IIT Madras online degree learners.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -17,7 +17,6 @@
     "db:check": "node scripts/check-db.cjs",
     "db:migrate": "node scripts/prisma.cjs migrate deploy",
     "postinstall": "prisma generate",
-    "worker": "node scripts/worker.cjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
@@ -33,9 +32,9 @@
   },
   "keywords": [
     "nextjs",
-    "hospital",
-    "campus",
-    "iitm"
+    "meetups",
+    "community",
+    "iit-madras"
   ],
   "author": "",
   "license": "ISC",

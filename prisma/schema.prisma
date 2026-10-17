@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,40 +7,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─────────────────────────────────────────────
-// Enums
-// ─────────────────────────────────────────────
-
 enum Role {
   STUDENT
-  PROCTOR
+  COORDINATOR
   ADMIN
-  PARENT
 }
 
-enum RequestStatus {
+enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
-  ESCALATED
 }
 
-enum NotificationType {
-  SMS
-  EMAIL
+enum EventStatus {
+  DRAFT
+  PROPOSED
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
 }
 
-enum NotificationStatus {
-  QUEUED
-  PROCESSING
-  MOCK
-  SENT
-  FAILED
+enum EventType {
+  MEETUP
+  COWORKING
+  STUDY_CIRCLE
+  WORKSHOP
+  SOCIAL
 }
 
-// ─────────────────────────────────────────────
-// NextAuth Required Models
-// ─────────────────────────────────────────────
+enum RegistrationStatus {
+  REGISTERED
+  WAITLISTED
+  CANCELLED
+  ATTENDED
+}
 
 model Account {
   id                String  @id @default(cuid())
@@ -58,8 +56,7 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -70,8 +67,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -84,150 +80,142 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ─────────────────────────────────────────────
-// Application Models
-// ─────────────────────────────────────────────
-
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  password      String? // hashed with bcryptjs; null for OAuth users
-  emailVerified DateTime?
-  image         String?
-  role          Role      @default(STUDENT)
+  id             String         @id @default(cuid())
+  name           String
+  email          String         @unique
+  password       String?
+  emailVerified  DateTime?
+  image          String?
+  role           Role           @default(STUDENT)
+  approvalStatus ApprovalStatus @default(PENDING)
+  registerNo     String?        @unique
+  studyProgram   String?
+  region         String?
+  city           String?
+  latitude       Float?
+  longitude      Float?
+  phone          String?
+  house          String?
+  activityPoints Int            @default(0)
+  isActive       Boolean        @default(true)
+  approvedAt     DateTime?
+  approvedById   String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  accounts       Account[]
+  sessions       Session[]
+  createdEvents  Event[]        @relation("EventCreator")
+  registrations  Registration[]
+  checkIns       CheckIn[]
+  hostedEvents   EventHost[]
+  auditLogs      AuditLog[]
 
-  // IITM-specific fields
-  registerNo String? @unique // e.g. MM24B001, for students
-  department String? // e.g. "Computer Science"
-  phone      String? // for SMS notifications
-  // Assignment relations enforce proctor and parent access on the server.
-  assignedProctorId String?
-  assignedProctor User? @relation("ProctorAssignment", fields: [assignedProctorId], references: [id])
-  assignedStudents User[] @relation("ProctorAssignment")
-  parentId String?
-  parent User? @relation("ParentChildren", fields: [parentId], references: [id])
-  children User[] @relation("ParentChildren")
-
-  // NextAuth relations
-  accounts Account[]
-  sessions Session[]
-
-  // App relations
-  submittedRequests Request[]  @relation("StudentRequests")
-  managedRequests   Request[]  @relation("ProctorRequests")
-  auditLogs         AuditLog[]
-
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([role])
-  @@index([assignedProctorId])
-  @@index([parentId])
-  @@index([email])
+  @@index([role, approvalStatus])
+  @@index([region])
 }
 
-model Request {
-  id           String        @id @default(cuid())
-  reason       String        @db.Text
-  hospitalName String
-  visitDate    DateTime
-  returnDate   DateTime?
-  isEmergency  Boolean       @default(false)
-  status       RequestStatus @default(PENDING)
-  proctorNote  String?       @db.Text
-  qrCode       String?       @db.Text // base64 encoded QR image
-  passToken String? @unique
-  hospitalId String?
-  hospital Hospital? @relation(fields: [hospitalId], references: [id])
+model Event {
+  id            String         @id @default(cuid())
+  title         String
+  description   String         @db.Text
+  type          EventType
+  status        EventStatus    @default(PROPOSED)
+  region        String
+  city          String
+  venue         String
+  address       String
+  latitude      Float
+  longitude     Float
+  startsAt      DateTime
+  endsAt        DateTime
+  capacity      Int
+  points        Int            @default(20)
+  coverColor    String         @default("emerald")
+  qrToken       String         @unique @default(cuid())
+  createdById   String
+  reviewedById  String?
+  reviewNote    String?        @db.Text
+  reviewedAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  createdBy     User           @relation("EventCreator", fields: [createdById], references: [id])
+  hosts         EventHost[]
+  registrations Registration[]
+  checkIns      CheckIn[]
 
-  // Relations
-  studentId String
-  proctorId String? // assigned when proctor takes action
-
-  student User  @relation("StudentRequests", fields: [studentId], references: [id])
-  proctor User? @relation("ProctorRequests", fields: [proctorId], references: [id])
-
-  notifications Notification[]
-  auditLogs     AuditLog[]
-
-  // Timestamps for each status transition
-  escalatedAt DateTime?
-  approvedAt  DateTime?
-  rejectedAt  DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([studentId])
-  @@index([proctorId])
-  @@index([status])
-  @@index([status, isEmergency, createdAt])
-  @@index([createdAt])
+  @@index([status, startsAt])
+  @@index([region])
+  @@index([createdById])
 }
 
-model Notification {
-  id        String             @id @default(cuid())
-  type      NotificationType
-  recipient String // phone number or email address
-  message   String             @db.Text
-  status    NotificationStatus @default(MOCK)
-  errorMsg  String? // populated when status = FAILED
-  dedupeKey String? @unique
-  attempts Int @default(0)
-  lockedAt DateTime?
-  providerId String?
+model EventHost {
+  id        String  @id @default(cuid())
+  eventId   String
+  userId    String
+  houseName String
+  isLead    Boolean @default(false)
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  requestId String
-  request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
-
-  sentAt DateTime @default(now())
-
-  @@index([requestId])
+  @@unique([eventId, userId])
+  @@index([userId])
 }
 
-model AuditLog {
-  id     String  @id @default(cuid())
-  action String // SUBMITTED | APPROVED | REJECTED | ESCALATED | NOTE_ADDED
-  note   String? @db.Text
+model Registration {
+  id           String             @id @default(cuid())
+  eventId      String
+  userId       String
+  status       RegistrationStatus @default(REGISTERED)
+  registeredAt DateTime           @default(now())
+  event        Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  requestId String?
-  userId    String?
-  entityId String?
+  @@unique([eventId, userId])
+  @@index([userId, status])
+}
 
-  request Request? @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  user    User?    @relation(fields: [userId], references: [id])
+model CheckIn {
+  id            String   @id @default(cuid())
+  eventId       String
+  userId        String
+  method        String
+  proofUrl      String?
+  pointsAwarded Int
+  verifiedAt    DateTime @default(now())
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-
-  @@index([requestId])
-  @@index([createdAt])
+  @@unique([eventId, userId])
+  @@index([userId])
 }
 
 model Hospital {
-  id String @id @default(cuid())
-  name String @unique
-  address String
+  id         String   @id @default(cuid())
+  name       String   @unique
+  address    String
   distanceKm Float
-  phone String?
-  emergency Boolean @default(false)
-  isActive Boolean @default(true)
-  requests Request[]
-  createdAt DateTime @default(now())
+  phone      String?
+  emergency  Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
 }
 
-// Singleton settings. Templates support {student}, {hospital}, and {status}.
-model SystemSettings {
-  id String @id @default("default")
-  escalationTimeoutMs Int @default(180000)
-  smsTemplate String @default("CampusCare: {student}'s hospital visit to {hospital} is {status}. Please contact the campus care team.")
-  emailTemplate String @default("A hospital visit request for {student} at {hospital} is {status}. Please review it in CampusCare.")
-  updatedAt DateTime @updatedAt
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  note      String?  @db.Text
+  userId    String?
+  entityId  String?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entityId])
 }
 
 model LoginAttempt {
-  key String @id
-  count Int @default(1)
+  key     String   @id
+  count   Int      @default(1)
   resetAt DateTime
 }
