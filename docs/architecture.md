@@ -1,43 +1,31 @@
-# Architecture and trust boundaries
+# Architecture
 
-CampusCare uses a server-first Next.js App Router architecture. Pages read through Server Components; client components handle forms, live refresh, charts, dialogs, and feedback. The browser is never trusted to enforce role or record ownership.
+CollabSphere uses server-rendered Next.js App Router pages, NextAuth credentials sessions, validated Server Actions and a relational Prisma model on Supabase PostgreSQL.
 
-## Request lifecycle
+## Trust boundaries
+
+- Only approved, active users can authenticate.
+- Middleware protects role URL spaces; every mutation independently calls `requireActor`.
+- Public signup always creates a pending student. Clients cannot choose a privileged role.
+- Admins approve memberships and event proposals.
+- Coordinators create proposals and may select approved coordinators as joint hosts.
+- Students and coordinators may register only for approved events.
+- Check-in requires both an authenticated member and an existing registration.
+
+## Event lifecycle
 
 ```mermaid
 stateDiagram-v2
-  [*] --> PENDING: student submits
-  PENDING --> APPROVED: assigned proctor/admin approves
-  PENDING --> REJECTED: assigned proctor/admin rejects
-  PENDING --> ESCALATED: reviewer or deadline job escalates
-  ESCALATED --> APPROVED: assigned proctor/admin approves
-  ESCALATED --> REJECTED: assigned proctor/admin rejects
-  APPROVED --> [*]
-  REJECTED --> [*]
+  [*] --> PROPOSED: coordinator submits
+  [*] --> APPROVED: admin creates
+  PROPOSED --> APPROVED: admin approves
+  PROPOSED --> REJECTED: admin rejects
+  APPROVED --> COMPLETED: event concludes
+  APPROVED --> CANCELLED: event cancelled
 ```
 
-The transaction contains the guarded status update, audit record, opaque pass token, and notification outbox writes. A status predicate provides optimistic concurrency. Repeated or simultaneous requests return a conflict.
+`EventHost` gives an event multiple coordinators or houses without duplicating event data. `Registration` has a compound event/user key, and `CheckIn` uses the same constraint to prevent duplicate presence awards. The check-in transaction creates presence, marks attendance, and increments points together.
 
-## Authorization
+## Data retention
 
-- Middleware prevents crossing role route groups.
-- Every server action and route handler independently calls `requireActor`.
-- Students see themselves, proctors assigned students, parents linked children, and administrators all records.
-- Public verification uses a random 192-bit token and selects only student ID, hospital, visit window, and status.
-- Credentials are rate-limited in PostgreSQL. Active status and role are re-read on every server access.
-- Mutating JSON endpoints validate request origin; all inputs use Zod.
-
-## Escalation and delivery
-
-`GET /api/jobs/escalate` requires a constant-time checked bearer secret. It selects overdue pending emergencies, conditionally claims each in a transaction, records a system event, and inserts deduplicated notifications.
-
-The dispatcher conditionally claims messages. Simulation is the default. `SENT` means provider accepted, not recipient delivered. A timeout has an unknown outcome and is not blindly retried, avoiding duplicate parent alerts.
-
-The local worker polls every 15 seconds. Production needs a scheduler at least every minute to meet a three-minute policy.
-
-## Operational boundaries
-
-- Medical reasons are sensitive; define access and retention policies before institutional use.
-- Demo data is fictional, and seeding refuses to run when live delivery is enabled.
-- Hospital distances are approximate; users are told to confirm services.
-- This does not replace emergency services; emergency screens tell students to seek immediate help directly.
+The product migration disables former parent accounts, maps former proctors to coordinators, and archives old hospital workflow tables. The source snapshot lives under `legacy/hospital-workflow` and is excluded from TypeScript builds. The active `Hospital` table remains as a read-only reference for services near IIT Madras.
