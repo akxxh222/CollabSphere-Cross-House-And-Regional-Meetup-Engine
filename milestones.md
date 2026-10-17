@@ -1,257 +1,106 @@
-# 🏗️ Build-a-Thon — Project Milestones
+# CampusCare — Build-a-Thon milestones
 
-> **Project**: Campus Hospital Visit Authorization & Emergency Escalation System
-> **Stack**: Next.js 14 (App Router) · Prisma · Supabase PostgreSQL · NextAuth.js · Vercel
+> Hospital Visit Authorization & Emergency Escalation for IIT Madras
+> Next.js 15 App Router · Prisma · Supabase PostgreSQL · NextAuth · Vercel
 
----
+Updated from verified repository state on 17 October 2026. A checked item exists in code; external release items remain open until their result can be verified.
 
-## 📊 Grading Rubric Summary
+## Scoring rubric
 
-| Criterion | Weight | Key Focus |
-|---|---|---|
-| Technical Architecture | **30%** | Sound design, clean code, APIs, state management, **Next.js App Router = extra credit** |
-| Relevance & Real-World Utility | **30%** | Addresses real community problem, clean & modular code, easy to deploy |
-| UI/UX & Performance | **20%** | Mobile responsive, fast, a11y (WCAG), intuitive navigation |
-| Admin Usability & Workflows | **20%** | Intuitive admin dashboard, easy data management |
+| Criterion              | Weight | Evidence                                                                                      |
+| ---------------------- | -----: | --------------------------------------------------------------------------------------------- |
+| Technical architecture |    30% | Server-first App Router, transactional domain services, scoped authorization, idempotent jobs |
+| Real-world utility     |    30% | Student → proctor → parent workflow, emergency escalation, QR pass, audit history             |
+| UI/UX and performance  |    20% | Responsive role workspaces, dark mode, a11y primitives, streaming states                      |
+| Admin workflows        |    20% | Analytics, filtering, bulk action, registry, people, logs, settings                           |
 
----
+## Phase 1 — Foundation and architecture
 
-## 🏛️ Architecture Overview
+- [x] **1.1** Next.js App Router with TypeScript and Tailwind CSS
+- [x] **1.2** Prisma with Supabase PostgreSQL
+- [x] **1.3** User, Request, Notification, AuditLog, Hospital, Settings, and rate-limit models
+- [x] **1.4** Credentials authentication and role-bearing JWT sessions
+- [x] **1.5** Auth, student, proctor, parent, and admin route groups
+- [x] **1.6** Middleware role protection plus server-side record authorization
+- [x] **1.7** Server Actions backed by domain services
+- [x] **1.8** Documented environment configuration and local secret generator
+- [x] **1.9** TanStack Query for live request data and cache invalidation
+- [x] **1.10** Shared Zod validation on client and server boundaries
 
-```
-Next.js 14 (App Router) — Full-Stack, Single Repo
-├── /app
-│   ├── (auth)/login/             ← Login page
-│   ├── (student)/dashboard/      ← Student portal
-│   ├── (proctor)/dashboard/      ← Proctor portal
-│   ├── (admin)/dashboard/        ← Admin panel
-│   └── api/                      ← REST Route Handlers (where needed)
-│       ├── auth/[...nextauth]/   ← NextAuth.js
-│       ├── requests/             ← CRUD for requests
-│       └── notifications/        ← Trigger SMS/email
-├── /lib
-│   ├── db.ts                     ← Prisma client singleton
-│   ├── auth.ts                   ← NextAuth config + role helpers
-│   └── actions/                  ← Server Actions (approve, reject, escalate)
-├── /components                   ← Reusable UI components
-├── /prisma
-│   └── schema.prisma             ← DB schema (User, Request, Notification, AuditLog)
-└── .env.local                    ← Supabase URL, NextAuth secret, Twilio keys
+## Phase 2 — Core utility
 
-Deployment: Vercel (one-click, full-stack)
-Database:   Supabase PostgreSQL
-Auth:       NextAuth.js (replaces JWT + NestJS guards)
-```
+- [x] **2.1** Student visit submission with hospital, timing, reason, and emergency priority
+- [x] **2.2** Proctor approve, reject, and escalate actions with comments
+- [x] **2.3** Idempotent deadline escalation job and protected endpoint
+- [x] **2.4** Twilio SMS and Resend email with safe mock modes and notification outbox
+- [x] **2.5** IIT Madras-area hospital directory with provenance and approximate distance
+- [x] **2.6** Transactional timeline and actor audit records
+- [x] **2.7** Printable QR pass with privacy-preserving public verification
+- [x] **2.8** Role-scoped, filter-aware CSV export with formula-injection protection
 
----
+## Phase 3 — UI/UX and performance
 
-## 🚀 Phase 1 — Project Foundation & Architecture
+- [x] **3.1** CSS design tokens for colour, surface, spacing, radius, and shadow
+- [x] **3.2** Inter and Outfit through `next/font`
+- [x] **3.3** System-aware dark mode and toggle
+- [x] **3.4** Dashboard surface and restrained glass treatment
+- [x] **3.5** Reduced-motion-aware route transitions
+- [x] **3.6** Responsive layouts from 375px through desktop
+- [x] **3.7** Named controls, semantic tables, dialogs, and keyboard focus
+- [x] **3.8** Accessible contrast palette; automated axe checks included
+- [x] **3.9** Skip-to-content link in root layout
+- [x] **3.10** Associated labels for form controls
+- [ ] **3.11** Lighthouse ≥90 — measure on the final deployed URL
+- [x] **3.12** `next/image` for generated QR image rendering; no decorative raster assets
+- [x] **3.13** Loading UI at every protected role segment
+- [x] **3.14** Friendly error UI at every protected role segment
+- [x] **3.15** Server Components for read-only pages and query views
+- [x] **3.16** Accessible status badges
+- [x] **3.17** Sonner success, error, and warning toasts
+- [x] **3.18** Dashboard and table skeletons
+- [x] **3.19** Shared illustrated empty state
+- [x] **3.20** Emergency countdown with final-minute pulse
+- [x] **3.21** Actor and timestamp request timeline
 
-> **Goal**: Establish a clean, scalable full-stack Next.js architecture that maximises Technical Architecture points.
+## Phase 4 — Admin workflows
 
-### Milestones
+- [x] **4.1** Admin layout and sidebar navigation
+- [x] **4.2** Total, approval-rate, response-time, and emergency KPIs
+- [x] **4.3** Seven-day Recharts request trend
+- [x] **4.4** Sort, search, status/date filters, and pagination
+- [x] **4.5** Bulk approve, reject, and escalate with partial-failure reporting
+- [x] **4.6** Add, edit, deactivate, and assign users
+- [x] **4.7** Add, edit, and archive hospitals while preserving history
+- [x] **4.8** Notification channel, message, status, provider ID, and failure logs
+- [x] **4.9** Escalation deadline and notification templates with preview
+- [x] **4.10** Filtered date-range CSV export
+- [x] **4.11** Searchable administrative activity log
 
-- [ ] **1.1** Scaffold Next.js 14 with **App Router** (`npx create-next-app@latest --app --ts --tailwind`)
-- [ ] **1.2** Set up **Prisma** with Supabase PostgreSQL connection string
-- [ ] **1.3** Define Prisma schema — `User`, `Request`, `Notification`, `AuditLog`
-- [ ] **1.4** Configure **NextAuth.js** with Credentials provider + role-based session (`STUDENT`, `PROCTOR`, `ADMIN`, `PARENT`)
-- [ ] **1.5** Create route group folders: `(auth)`, `(student)`, `(proctor)`, `(admin)`
-- [ ] **1.6** Add middleware (`middleware.ts`) for role-based route protection
-- [ ] **1.7** Set up `/lib/actions/` for Server Actions (approve, reject, escalate, submit)
-- [ ] **1.8** Configure `.env.local` and `.env.example` with all required variables documented
-- [ ] **1.9** Add **React Query (TanStack Query)** for client-side data fetching and caching
-- [ ] **1.10** Add **Zod** for shared form validation schemas (used on both Server Actions + client)
+## Phase 5 — Quality and release
 
-### Tech Stack Decisions
-| Need | Solution |
-|---|---|
-| Auth & sessions | NextAuth.js |
-| Database access | Prisma ORM |
-| Server mutations | Server Actions (`/lib/actions/`) |
-| Client data fetching | TanStack Query |
-| Validation | Zod |
-| Styling | Tailwind CSS + CSS Variables |
-| Deployment | Vercel (zero config for Next.js) |
+- [x] **5.1** ESLint and Prettier configuration
+- [x] **5.2** TypeScript strict mode
+- [x] **5.3** Shared public error mapping and HTTP status handling
+- [x] **5.4** Indexed, documented Prisma relations and migration history
+- [x] **5.5** README with problem, setup, environment, architecture, and deployment
+- [x] **5.6** Mermaid system and lifecycle diagrams
+- [x] **5.7** Contributor and security documentation
+- [x] **5.8** Incremental feature commits pushed to GitHub
+- [ ] **5.9** Production Vercel deployment — account connection required
+- [x] **5.10** Supabase connected, migrated, and seeded with fictional demo data
+- [ ] **5.11** Production variables in Vercel — requires project access
+- [ ] **5.12** Verified live URL and hackathon submission
 
----
+## Verification gate
 
-## 🌍 Phase 2 — Real-World Utility & Core Features
+- [x] Domain unit tests cover transitions, deadlines, validation, templates, and safe CSV cells
+- [x] Production build completes
+- [x] Strict type check completes sequentially after build generation
+- [x] ESLint reports zero warnings and errors
+- [x] Browser suite: all 8 four-role, access-control, mobile, and axe workflows pass
+- [x] Production dependency audit: zero known vulnerabilities after patched Next.js update
+- [ ] Lighthouse: run against production with real caching and transport
 
-> **Goal**: Demonstrate a compelling, real community problem solved end-to-end.
+## Release constraint
 
-### Problem Statement (for README)
-> IITM students visiting hospitals must go through a manual, paper-based authorization process involving their proctor. Emergencies during off-hours can go unnoticed for hours. This system digitises and automates the entire workflow with real-time escalation — replacing paperwork with a scannable QR pass.
-
-### Core Feature Milestones
-
-- [ ] **2.1** Student portal: Submit hospital visit request (reason, hospital, timing, emergency flag)
-- [ ] **2.2** Proctor portal: Approve / Reject / Escalate requests with comments
-- [ ] **2.3** Emergency escalation engine: Auto-escalate after **3 minutes** of pending — SMS to parents + email to proctor (mock-mode for demo)
-- [ ] **2.4** Parent notification: Twilio SMS (mock-mode toggle via env variable)
-- [ ] **2.5** Nearby hospitals list near VIT campus with address + distance
-- [ ] **2.6** **Request timeline / audit log**: Every status change logged with timestamp + actor name
-- [ ] **2.7** **QR Code pass**: Approved requests generate a scannable QR code (using `qrcode` npm package)
-- [ ] **2.8** Export requests as CSV (for institutional reporting)
-
-### API Route Handlers (`/app/api/`)
-
-```
-GET  /api/requests              ← List requests (filtered by role)
-POST /api/requests              ← Submit new request
-PATCH /api/requests/[id]        ← Approve / Reject / Escalate
-GET  /api/requests/[id]/qr      ← Generate QR pass
-POST /api/notifications/trigger ← Send SMS/email
-GET  /api/admin/stats           ← Analytics data
-```
-
-### Server Actions (`/lib/actions/`)
-```
-submitRequest()     ← Student submits
-approveRequest()    ← Proctor approves
-rejectRequest()     ← Proctor rejects
-escalateRequest()   ← Manual or auto escalation
-```
-
----
-
-## 🎨 Phase 3 — UI/UX & Performance Excellence
-
-> **Goal**: Score maximum points on UI/UX & Performance (20%).
-
-### Design System
-
-- [ ] **3.1** Design token system using **CSS variables** in `globals.css` (colors, spacing, radius, shadows)
-- [ ] **3.2** Google Fonts: `Inter` for body text, `Outfit` for headings (via `next/font/google`)
-- [ ] **3.3** **Dark mode** via `next-themes` with system preference detection + toggle button
-- [ ] **3.4** Glassmorphism card style for dashboards (`backdrop-filter: blur`, semi-transparent bg)
-- [ ] **3.5** Smooth page transitions using `framer-motion` `AnimatePresence`
-
-### Responsiveness & Accessibility (a11y)
-
-- [ ] **3.6** Mobile-first responsive layout — all views work from 375px to 1440px
-- [ ] **3.7** All interactive elements have `aria-label`, `role`, keyboard navigation (Tab + Enter/Space)
-- [ ] **3.8** Colour contrast ratio >= 4.5:1 for all text (WCAG AA)
-- [ ] **3.9** `<SkipToContent />` link as first focusable element on every page
-- [ ] **3.10** All form `<input>` elements have a proper associated `<label>`
-
-### Performance
-
-- [ ] **3.11** Lighthouse score >= 90 on Performance, Accessibility, Best Practices, SEO
-- [ ] **3.12** Use `next/image` for all images (WebP + lazy loading auto-handled)
-- [ ] **3.13** Add `loading.tsx` **per route segment** (App Router streaming + Suspense)
-- [ ] **3.14** Add `error.tsx` per route segment with friendly error UI
-- [ ] **3.15** Use Server Components for all read-only data views (zero client JS for those pages)
-
-### UI Components Checklist
-
-- [ ] **3.16** `<StatusBadge />` — colour-coded: Pending=amber, Approved=green, Rejected=red, Escalated=purple
-- [ ] **3.17** `<Toast />` notification system (success, error, warning, info) — use `sonner` or `react-hot-toast`
-- [ ] **3.18** `<Skeleton />` loaders for all data-fetching states (tables, cards, stats)
-- [ ] **3.19** Empty state component with illustration for zero-data views
-- [ ] **3.20** Animated **escalation countdown timer** (shows time left before auto-escalation, pulses red at <60s)
-- [ ] **3.21** `<RequestTimeline />` — vertical timeline with status steps and timestamps
-
----
-
-## 🛠️ Phase 4 — Admin Dashboard & Workflows
-
-> **Goal**: Score maximum points on Admin Usability & Workflows (20%).
-
-### Admin Dashboard Milestones
-
-- [ ] **4.1** Separate `(admin)` route group with its own layout and sidebar navigation
-- [ ] **4.2** **KPI overview cards**: Total requests, approval rate, avg. response time, active emergencies
-- [ ] **4.3** **Analytics chart** (Recharts): Weekly request volume + approval/rejection trend
-- [ ] **4.4** **Requests data table**: Sortable columns, filter by date/status/student/proctor, pagination
-- [ ] **4.5** Bulk actions: Select multiple rows → Approve / Reject / Escalate all at once
-- [ ] **4.6** **User management table**: Add / Edit / Deactivate students, proctors, parents
-- [ ] **4.7** **Hospital registry**: Admin can add, edit, remove hospitals in the system
-- [ ] **4.8** **Notification logs table**: Every SMS/email sent with delivery status + timestamp
-- [ ] **4.9** **System settings panel**: Configure escalation timeout (default 3 min), notification templates
-- [ ] **4.10** Export filtered requests to CSV with date-range picker
-- [ ] **4.11** Admin activity audit log (who changed what, when)
-
----
-
-## ✅ Phase 5 — Quality Assurance & Deployment
-
-> **Goal**: Clean, documented, one-click deployable project.
-
-### Code Quality
-
-- [ ] **5.1** ESLint + Prettier configured — zero warnings on `npm run lint`
-- [ ] **5.2** TypeScript strict mode (`"strict": true` in `tsconfig.json`)
-- [ ] **5.3** All Server Actions and Route Handlers have proper error handling + HTTP status codes
-- [ ] **5.4** Prisma schema has proper indexes and relations documented with comments
-
-### Documentation
-
-- [ ] **5.5** `README.md`: Problem statement, architecture diagram, setup guide, env variables table, screenshots, live demo link
-- [ ] **5.6** Mermaid architecture diagram embedded in README
-- [ ] **5.7** `CONTRIBUTING.md` with local dev setup instructions
-
-### Deployment
-
-- [ ] **5.8** Push to GitHub (public repo)
-- [ ] **5.9** Deploy to **Vercel** — single `vercel deploy` command
-- [ ] **5.10** Supabase PostgreSQL connected and seeded with demo data
-- [ ] **5.11** All env variables set in Vercel dashboard
-- [ ] **5.12** Live demo URL in README + submitted to hackathon portal
-
----
-
-## 🎯 Quick Win Checklist (High Impact, Low Effort)
-
-| # | Task | Time | Impacts |
-|---|---|---|---|
-| QW-1 | Add `loading.tsx` + `error.tsx` per route | 20 min | UI/UX (20%) |
-| QW-2 | Add skeleton loaders to all tables | 30 min | UI/UX (20%) |
-| QW-3 | Animate the escalation countdown timer | 45 min | UI/UX (20%) |
-| QW-4 | Add KPI analytics cards to admin dashboard | 45 min | Admin (20%) |
-| QW-5 | Add `aria-label` to all buttons and icons | 30 min | UI/UX a11y (20%) |
-| QW-6 | Add request audit timeline component | 1 hr | Relevance (30%) |
-| QW-7 | QR code pass generation on approval | 1 hr | Relevance (30%) |
-| QW-8 | Seed DB with realistic demo data | 30 min | All criteria |
-| QW-9 | Run Lighthouse + fix issues to reach 90+ | 1 hr | UI/UX (20%) |
-
----
-
-## 📅 Suggested Timeline
-
-```
-Day 1 AM  — Phase 1: Next.js scaffold, Prisma, NextAuth, route groups
-Day 1 PM  — Phase 2: Core features (submit, approve, reject, escalation)
-Day 2 AM  — Phase 3: Design system, dark mode, a11y, loading/error states
-Day 2 PM  — Phase 4: Admin dashboard (KPIs, charts, tables, settings)
-Day 3 AM  — Phase 5: QA, README, seed data, deploy to Vercel
-Day 3 PM  — Polish, Lighthouse audit, QR pass, countdown timer, demo prep
-```
-
----
-
-## 🏆 Score Maximisation Strategy
-
-### Technical Architecture (30%)
-- [ ] Next.js App Router used deeply (route groups, layouts, Server Components, Server Actions)
-- [ ] Prisma + Supabase — professional DB layer
-- [ ] TanStack Query for client state, Zod for validation
-- [ ] Middleware for role-based auth guards
-- [ ] Clean `/lib/actions/` abstraction layer
-
-### Relevance & Real-World Utility (30%)
-- [ ] Solves a real IITM campus problem (hospital authorization)
-- [ ] Full end-to-end workflow: Student → Proctor → Parent notification
-- [ ] QR pass generation = genuinely deployable at a real institution
-- [ ] One-click Vercel deployment = easy adoption
-
-### UI/UX & Performance (20%)
-- [ ] Lighthouse >= 90 on all metrics
-- [ ] Mobile-first, dark mode, WCAG AA a11y
-- [ ] Skeleton loaders + micro-animations + transitions
-- [ ] `loading.tsx` / `error.tsx` per route
-
-### Admin Usability & Workflows (20%)
-- [ ] KPI cards + Recharts analytics chart
-- [ ] Sortable, filterable data table with bulk actions
-- [ ] User management + hospital registry
-- [ ] System settings panel
+A three-minute escalation policy requires a scheduler that invokes `/api/jobs/escalate` at least once per minute with `CRON_SECRET`. Vercel Hobby cron cannot meet this guarantee; use Vercel Pro cron or another trusted scheduler. The local demo worker polls every 15 seconds.
