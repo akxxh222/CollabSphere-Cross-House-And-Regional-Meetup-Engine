@@ -36,17 +36,9 @@ export const metadata: Metadata = {
 // ─────────────────────────────────────────────
 // Root Layout
 // ─────────────────────────────────────────────
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${inter.variable} ${outfit.variable}`}
-    >
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${outfit.variable}`}>
       <body>
         {/* Skip to main content — accessibility */}
         <a

@@ -16,16 +16,44 @@ describe("request lifecycle", () => {
     expect(isEscalationDue({ ...request, isEmergency: false }, 180000, 999999)).toBe(false);
     expect(isEscalationDue({ ...request, status: "APPROVED" }, 180000, 999999)).toBe(false);
   });
-  it("requires a rejection explanation", () => { expect(reviewRequestSchema.safeParse({ requestId: "clxxxxxxxxxxxxxxxxxxxxxxx", action: "REJECT", proctorNote: "" }).success).toBe(false); });
+  it("requires a rejection explanation", () => {
+    expect(
+      reviewRequestSchema.safeParse({
+        requestId: "clxxxxxxxxxxxxxxxxxxxxxxx",
+        action: "REJECT",
+        proctorNote: "",
+      }).success,
+    ).toBe(false);
+  });
   it("rejects backwards return dates", () => {
-    expect(submitRequestSchema.safeParse({ reason: "A detailed hospital visit reason", hospitalId: "clxxxxxxxxxxxxxxxxxxxxxxx", visitDate: new Date(Date.now() + 3600000), returnDate: new Date(), isEmergency: false }).success).toBe(false);
+    expect(
+      submitRequestSchema.safeParse({
+        reason: "A detailed hospital visit reason",
+        hospitalId: "clxxxxxxxxxxxxxxxxxxxxxxx",
+        visitDate: new Date(Date.now() + 3600000),
+        returnDate: new Date(),
+        isEmergency: false,
+      }).success,
+    ).toBe(false);
   });
 });
 describe("data boundaries", () => {
-  it("neutralizes spreadsheet formulas and escapes quotes", () => { expect(csvCell('=HYPERLINK("bad")')).toBe('"\'=HYPERLINK(""bad"")"'); expect(csvCell('a,b')).toBe('"a,b"'); });
-  it("renders only the supported notification placeholders", () => { expect(renderTemplate("{student}: {status}; {unknown}", { student: "Arjun", status: "approved" })).toBe("Arjun: approved; {unknown}"); });
+  it("neutralizes spreadsheet formulas and escapes quotes", () => {
+    expect(csvCell('=HYPERLINK("bad")')).toBe('"\'=HYPERLINK(""bad"")"');
+    expect(csvCell("a,b")).toBe('"a,b"');
+  });
+  it("renders only the supported notification placeholders", () => {
+    expect(
+      renderTemplate("{student}: {status}; {unknown}", { student: "Arjun", status: "approved" }),
+    ).toBe("Arjun: approved; {unknown}");
+  });
   it("requires institutional student email but allows external parents", () => {
-    const person = { name: "A Parent", email: "parent@example.org", password: "long-password", role: "PARENT" };
+    const person = {
+      name: "A Parent",
+      email: "parent@example.org",
+      password: "long-password",
+      role: "PARENT",
+    };
     expect(userSchema.safeParse(person).success).toBe(true);
     expect(userSchema.safeParse({ ...person, role: "STUDENT" }).success).toBe(false);
   });

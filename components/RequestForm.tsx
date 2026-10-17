@@ -6,16 +6,162 @@ import { toast } from "sonner";
 import { ArrowRight, ShieldCheck, AlertTriangle, Loader2 } from "lucide-react";
 import { submitRequest } from "@/lib/actions/requests";
 import { submitRequestSchema } from "@/lib/validations";
-export function RequestForm({ hospitals, ready, emergencyReady }: { hospitals: { id: string; name: string; distanceKm: number }[]; ready: boolean; emergencyReady: boolean }) {
-  const router = useRouter(); const client = useQueryClient(); const [pending,setPending] = useState(false); const [emergency,setEmergency] = useState(false); const [error,setError] = useState("");
+export function RequestForm({
+  hospitals,
+  ready,
+  emergencyReady,
+}: {
+  hospitals: { id: string; name: string; distanceKm: number }[];
+  ready: boolean;
+  emergencyReady: boolean;
+}) {
+  const router = useRouter();
+  const client = useQueryClient();
+  const [pending, setPending] = useState(false);
+  const [emergency, setEmergency] = useState(false);
+  const [error, setError] = useState("");
   async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const form = new FormData(event.currentTarget); setError("");
-    const input = { reason: form.get("reason"), hospitalId: form.get("hospitalId"), visitDate: form.get("visitDate"), returnDate: form.get("returnDate"), isEmergency: emergency };
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    setError("");
+    const input = {
+      reason: form.get("reason"),
+      hospitalId: form.get("hospitalId"),
+      visitDate: form.get("visitDate"),
+      returnDate: form.get("returnDate"),
+      isEmergency: emergency,
+    };
     const result = submitRequestSchema.safeParse(input);
-    if (!result.success) { setError(result.error.issues[0].message); return; }
+    if (!result.success) {
+      setError(result.error.issues[0].message);
+      return;
+    }
     setPending(true);
-    try { const response = await submitRequest(result.data); if (!response.success) { setError(response.error); return; } toast.success("Your visit request is with your proctor."); await client.invalidateQueries({ queryKey: ["requests"] }); router.push(`/student/requests/${response.requestId}`); router.refresh(); }
-    catch { setError("Could not submit the request. Please try again."); } finally { setPending(false); }
+    try {
+      const response = await submitRequest(result.data);
+      if (!response.success) {
+        setError(response.error);
+        return;
+      }
+      toast.success("Your visit request is with your proctor.");
+      await client.invalidateQueries({ queryKey: ["requests"] });
+      router.push(`/student/requests/${response.requestId}`);
+      router.refresh();
+    } catch {
+      setError("Could not submit the request. Please try again.");
+    } finally {
+      setPending(false);
+    }
   }
-  return <form onSubmit={submit} className="card card-pad space-y-6"><div className="border-b pb-5"><h2>Tell us about your visit</h2><p className="text-xs muted mt-2">Your details are shared only with your assigned care team.</p></div>{!ready && <p role="alert" className="notice notice-warning">An administrator needs to assign an active proctor before you can submit a request.</p>}<div><label htmlFor="hospitalId" className="label">Hospital</label><select className="input" id="hospitalId" name="hospitalId" required defaultValue=""><option value="" disabled>Select a hospital</option>{hospitals.map(h => <option key={h.id} value={h.id}>{h.name} · ~{h.distanceKm} km</option>)}</select><p className="field-hint">Distances are approximate from the IIT Madras main gate.</p></div><div className="grid sm:grid-cols-2 gap-5"><div><label htmlFor="visitDate" className="label">Departure date & time</label><input type="datetime-local" className="input" id="visitDate" name="visitDate" required /><p className="field-hint">Use the local time shown on your device.</p></div><div><label htmlFor="returnDate" className="label">Expected return <span className="muted font-normal">(optional)</span></label><input type="datetime-local" className="input" id="returnDate" name="returnDate" /></div></div><div><label htmlFor="reason" className="label">Reason for your visit</label><textarea className="input min-h-32" id="reason" name="reason" required minLength={20} maxLength={1000} placeholder="Briefly explain why you need a hospital visit…" /><p className="field-hint">20–1,000 characters. Include only what your care team needs to review the request.</p></div><label className="flex gap-3 items-start rounded-xl border p-4 cursor-pointer"><input type="checkbox" name="isEmergency" className="mt-1 accent-[var(--accent)]" checked={emergency} onChange={e => setEmergency(e.target.checked)} /><span><span className="text-xs font-semibold block">This is an emergency visit</span><span className="field-hint block">An unattended emergency request automatically alerts your parent and proctor after the review deadline.</span></span></label>{emergency && <div className="notice notice-warning"><AlertTriangle className="shrink-0 mt-1" size={17} /><p>{!emergencyReady ? "Ask an administrator to link an active parent with a phone number for emergency alerts. " : ""}For immediate medical needs, seek help directly. This request system is not an emergency response service.</p></div>}{error && <p role="alert" className="notice notice-warning">{error}</p>}<div className="flex flex-col sm:flex-row gap-4 items-center justify-between border-t pt-5"><span className="text-[10px] muted flex items-center gap-1.5"><ShieldCheck size={14} />Securely shared with your care team</span><button className="btn btn-primary w-full sm:w-auto" disabled={pending || !ready || !hospitals.length || (emergency && !emergencyReady)} aria-busy={pending}>{pending ? <Loader2 size={15} className="animate-spin" /> : null}{pending ? "Submitting…" : "Submit visit request"}<ArrowRight size={15} /></button></div></form>;
+  return (
+    <form onSubmit={submit} className="card card-pad space-y-6">
+      <div className="border-b pb-5">
+        <h2>Tell us about your visit</h2>
+        <p className="text-xs muted mt-2">
+          Your details are shared only with your assigned care team.
+        </p>
+      </div>
+      {!ready && (
+        <p role="alert" className="notice notice-warning">
+          An administrator needs to assign an active proctor before you can submit a request.
+        </p>
+      )}
+      <div>
+        <label htmlFor="hospitalId" className="label">
+          Hospital
+        </label>
+        <select className="input" id="hospitalId" name="hospitalId" required defaultValue="">
+          <option value="" disabled>
+            Select a hospital
+          </option>
+          {hospitals.map((h) => (
+            <option key={h.id} value={h.id}>
+              {h.name} · ~{h.distanceKm} km
+            </option>
+          ))}
+        </select>
+        <p className="field-hint">Distances are approximate from the IIT Madras main gate.</p>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-5">
+        <div>
+          <label htmlFor="visitDate" className="label">
+            Departure date & time
+          </label>
+          <input type="datetime-local" className="input" id="visitDate" name="visitDate" required />
+          <p className="field-hint">Use the local time shown on your device.</p>
+        </div>
+        <div>
+          <label htmlFor="returnDate" className="label">
+            Expected return <span className="muted font-normal">(optional)</span>
+          </label>
+          <input type="datetime-local" className="input" id="returnDate" name="returnDate" />
+        </div>
+      </div>
+      <div>
+        <label htmlFor="reason" className="label">
+          Reason for your visit
+        </label>
+        <textarea
+          className="input min-h-32"
+          id="reason"
+          name="reason"
+          required
+          minLength={20}
+          maxLength={1000}
+          placeholder="Briefly explain why you need a hospital visit…"
+        />
+        <p className="field-hint">
+          20–1,000 characters. Include only what your care team needs to review the request.
+        </p>
+      </div>
+      <label className="flex gap-3 items-start rounded-xl border p-4 cursor-pointer">
+        <input
+          type="checkbox"
+          name="isEmergency"
+          className="mt-1 accent-[var(--accent)]"
+          checked={emergency}
+          onChange={(e) => setEmergency(e.target.checked)}
+        />
+        <span>
+          <span className="text-xs font-semibold block">This is an emergency visit</span>
+          <span className="field-hint block">
+            An unattended emergency request automatically alerts your parent and proctor after the
+            review deadline.
+          </span>
+        </span>
+      </label>
+      {emergency && (
+        <div className="notice notice-warning">
+          <AlertTriangle className="shrink-0 mt-1" size={17} />
+          <p>
+            {!emergencyReady
+              ? "Ask an administrator to link an active parent with a phone number for emergency alerts. "
+              : ""}
+            For immediate medical needs, seek help directly. This request system is not an emergency
+            response service.
+          </p>
+        </div>
+      )}
+      {error && (
+        <p role="alert" className="notice notice-warning">
+          {error}
+        </p>
+      )}
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between border-t pt-5">
+        <span className="text-[10px] muted flex items-center gap-1.5">
+          <ShieldCheck size={14} />
+          Securely shared with your care team
+        </span>
+        <button
+          className="btn btn-primary w-full sm:w-auto"
+          disabled={pending || !ready || !hospitals.length || (emergency && !emergencyReady)}
+          aria-busy={pending}
+        >
+          {pending ? <Loader2 size={15} className="animate-spin" /> : null}
+          {pending ? "Submitting…" : "Submit visit request"}
+          <ArrowRight size={15} />
+        </button>
+      </div>
+    </form>
+  );
 }

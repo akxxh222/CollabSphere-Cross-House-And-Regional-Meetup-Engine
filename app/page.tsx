@@ -15,8 +15,8 @@ export default async function RootPage() {
   const roleRedirects = {
     STUDENT: "/student/dashboard",
     PROCTOR: "/proctor/dashboard",
-    ADMIN:   "/admin/dashboard",
-    PARENT:  "/parent/dashboard",
+    ADMIN: "/admin/dashboard",
+    PARENT: "/parent/dashboard",
   } as const;
   // Note: URLs resolve from route groups:
   //   (student)/student/dashboard → /student/dashboard

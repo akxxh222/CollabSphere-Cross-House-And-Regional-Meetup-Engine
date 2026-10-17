@@ -84,13 +84,10 @@ export interface AdminStats {
 // ─────────────────────────────────────────────
 // API Response wrapper
 // ─────────────────────────────────────────────
-export type ApiResponse<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+export type ApiResponse<T> = { success: true; data: T } | { success: false; error: string };
 
 // ─────────────────────────────────────────────
 // Server Action Result
 // ─────────────────────────────────────────────
 export type ActionResult<T = void> =
-  | { success: true; data?: T; message?: string }
-  | { success: false; error: string };
+  { success: true; data?: T; message?: string } | { success: false; error: string };

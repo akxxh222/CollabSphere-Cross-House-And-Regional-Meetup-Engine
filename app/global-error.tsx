@@ -15,7 +15,9 @@ export default function GlobalError({
           className="min-h-screen flex flex-col items-center justify-center p-6 text-center"
           style={{ background: "var(--bg-secondary)", color: "var(--text-primary)" }}
         >
-          <div className="text-5xl mb-4" aria-hidden="true">⚠️</div>
+          <div className="text-5xl mb-4" aria-hidden="true">
+            ⚠️
+          </div>
           <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
           <p className="mb-6 max-w-sm" style={{ color: "var(--text-secondary)" }}>
             {error.message || "A critical error occurred. Please try again."}

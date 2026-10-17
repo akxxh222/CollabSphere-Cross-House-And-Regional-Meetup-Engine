@@ -10,7 +10,9 @@ export default function NotFound() {
       className="min-h-screen flex items-center justify-center p-6 text-center"
     >
       <div className="animate-in">
-        <div className="text-7xl mb-6" aria-hidden="true">🏥</div>
+        <div className="text-7xl mb-6" aria-hidden="true">
+          🏥
+        </div>
         <h1 className="text-4xl font-bold mb-3">404</h1>
         <p className="text-lg mb-2" style={{ color: "var(--text-primary)" }}>
           Page not found
@@ -18,11 +20,7 @@ export default function NotFound() {
         <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
-        <Link
-          href="/"
-          className="btn btn-primary"
-          aria-label="Go back to home page"
-        >
+        <Link href="/" className="btn btn-primary" aria-label="Go back to home page">
           Go home
         </Link>
       </div>
